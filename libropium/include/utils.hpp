@@ -4,6 +4,7 @@
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <array>
 #include "expression.hpp"
 
 using std::string;
