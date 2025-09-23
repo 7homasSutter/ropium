@@ -22,7 +22,7 @@ def basic_example_with_constraints():
     rop.abi = ABI.X86_STDCALL
     rop.os = OS.WINDOWS
 
-    chain = rop.compile('eax = ebx')
+    chain = rop.compile('esp = esp + 10')
     if chain:
         print(chain.dump())
         print(chain.dump('raw'))
