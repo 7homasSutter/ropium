@@ -23,6 +23,7 @@ vector<RawGadget>* raw_gadgets_from_file(string filename);
 // Write gadgets to file from ROPgadget output
 bool ropgadget_to_file(string filename, string ropgadget_tmp_file, string bin);
 
+bool rp_gadgets_to_file(string filename, string ropgadget_tmp_file);
 /* ========= Support for hashing tuples ========== */
 #include <tuple>
 // function has to live in the std namespace 

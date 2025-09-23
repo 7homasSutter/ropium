@@ -256,6 +256,7 @@ int GadgetDB::analyse_raw_gadgets(vector<RawGadget>& raw_gadgets, Arch* arch){
             nb_success++;
         }
     }
+    //std::cout << "nb_success: " << nb_success << std::endl;
 
     return nb_success;
 }

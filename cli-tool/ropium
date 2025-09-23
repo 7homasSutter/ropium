@@ -2,6 +2,7 @@
 from ropium import *
 from prompt_toolkit import PromptSession, ANSI
 import os
+import argparse
 
 # Colors and util functions
 MAIN_COLOR_ANSI = '\033[92m'    # Default color 
@@ -51,6 +52,7 @@ start_msg = "\n" + str_bold("ROPium") + " - v3.2\n"
 # Commands
 CMD_HELP = "help"
 CMD_LOAD = "load"
+CMD_LOAD_RP = "load_rp"
 CMD_FIND = "find"
 CMD_BADBYTES = "badbytes"
 CMD_KEEPREGS = "keepregs"
@@ -82,6 +84,11 @@ def main():
             if( command == CMD_LOAD ):
                 try:
                     load(args[1:])
+                except LoadException as e:
+                    error(str(e), skip=True)
+            elif ( command == CMD_LOAD_RP ):
+                try:
+                    load_rp_gadgets(args[1:])
                 except LoadException as e:
                     error(str(e), skip=True)
             elif( command == CMD_EXIT ):
@@ -144,6 +151,43 @@ def main():
     print('Thanks for using ROPium !')
     return
 
+
+# Load rp++ gadgets from text file command
+def load_rp_gadgets(args):
+    """
+    Load ROPGadgets from an rp++-generated text file.
+    """
+    global compiler
+
+    parser = argparse.ArgumentParser(
+        prog="load_rp_gadgets",
+        description="Load ROPGadgets from an rp++-generated text file."
+    )
+    parser.add_argument("file", help="Path to the rp++-generated text file")
+    parser.add_argument("--arch", "-a", default="X86", required=False, help="Specify the architecture (e.g., x86)")
+
+    if isinstance(args, list):
+        try:
+            args = parser.parse_args(args)
+        except SystemExit:
+            return
+
+    arch = args.arch
+
+    if not os.path.isfile(args.file):
+        print(f"Error: Input file '{args.file}' is missing or does not exist.")
+        return
+
+    if compiler is None:
+        print(f"Loading ROPium compiler for architecture: {arch}")
+        compiler = ROPium(str_to_arch[arch])
+        print(f"Compiler initialized for architecture: {arch}")
+    elif compiler and arch and (str_to_arch[arch] != compiler.arch):
+        raise LoadException(f"Already working on a different architecture than '{arch}'")
+
+    compiler.load_rp(args.file)
+    info(f"Loaded: {args.file}")
+
 # Load command
 class LoadException(Exception):
     pass
@@ -188,7 +232,7 @@ def load(args):
     if arch and (arch not in str_to_arch):
         raise LoadException(f"Unsupported architecture: {arch}")
 
-    # Instanciate compiler if not already
+    # Instantiate compiler if not already
     if compiler is None:
         compiler = ROPium(str_to_arch[arch])
         compiler_was_none = True
@@ -451,6 +495,7 @@ def set_os(args):
 main_help = str_main(str_bold('\n\tMain Commands'))
 main_help += str_special("\n\t(For more info about a command type 'help <cmd>')")
 main_help += '\n\n\t' + str_bold(CMD_LOAD) + ': \t\tload gadgets from a binary file'
+main_help += '\n\n\t' + str_bold(CMD_LOAD_RP) + ': \tload gadgets from a rp++ file'
 main_help += '\n\t' + str_bold(CMD_FIND) + ': \t\tFind ropchains using semantic queries'
 main_help += '\n\n\t' + str_bold(CMD_BADBYTES) + ': \tSet bad bytes to be avoided in ropchains'
 main_help += '\n\t' + str_bold(CMD_KEEPREGS) + ': \tSet registers that must not be clobbered'
@@ -467,6 +512,15 @@ load_help += "\n\n\t"+str_bold("Options")+":"
 load_help += str_special("\n\t\t-a,--arch <arch>")+"  architecture to use for gadget" +"\n\t\t\t\t  disassembly/analysis"
 load_help += "\n\n\t"+str_bold("Supported achitectures")+": "+', '.join([str_special(s) for s in str_to_arch])
 load_help += "\n\n\t"+str_bold("Examples")+":\n\t\tload -a X86 /bin/bash \n\t\tload -a X64 ../my_binary1 ../my_binary2 "
+
+load_rp_help = str_main(str_bold("\n\t'load_rp' Command"))
+load_rp_help += str_special("\n\t(Load gadgets from from a rp++-generated gadget file)")
+load_rp_help += "\n\n\t"+str_bold("Usage")+":\tload [OPTIONS] <filename> [<filename> ...]"
+load_rp_help += "\n\n\t"+str_bold("Options")+":"
+load_rp_help += str_special("\n\t\t-a,--arch <arch>")+"  architecture to use for gadget" +"\n\t\t\t\t  disassembly/analysis"
+load_rp_help += "\n\n\t"+str_bold("Supported achitectures")+": "+', '.join([str_special(s) for s in str_to_arch])
+load_rp_help += "\n\n\t"+str_bold("Examples")+":\n\t\tload -a X86 /bin/bash \n\t\tload -a X64 ../my_binary1 ../my_binary2 "
+
 
 find_help = str_main(str_bold("\n\t'find' Command"))
 find_help += str_special("\n\t(Automatically find ropchains)")

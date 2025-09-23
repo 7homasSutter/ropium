@@ -1,6 +1,7 @@
 #include "python_bindings.hpp"
 #include <cstdio>
 #include <fstream>
+#include <iostream>
 
 /* -------------------------------------
  *          ROPium object
@@ -68,6 +69,63 @@ static PyObject* ROPium_load(PyObject* self, PyObject* args){
     Py_RETURN_NONE;
 };
 
+static PyObject* ROPium_load_rp(PyObject* self, PyObject* args){
+    const char* filename;
+    int filename_len;
+    int filenum = 0;
+    int nb_success = 0;
+    stringstream ss;
+    string gadget_file;
+    string input_file;
+    vector<RawGadget>* raw = nullptr;
+
+    if (PyTuple_Check(args)) {
+        Py_ssize_t n = PyTuple_Size(args);
+        for (Py_ssize_t i = 0; i < n; ++i) {
+            PyObject* item = PyTuple_GetItem(args, i);
+            PyObject* str_repr = PyObject_Repr(item);
+            if (str_repr) {
+                const char* s = PyUnicode_AsUTF8(str_repr);
+                if (s) {
+                    std::cout << "Arg " << i << ": " << s << std::endl;
+                }
+                Py_DECREF(str_repr);
+            }
+        }
+    }
+
+    // Parse Input File
+    if( ! PyArg_ParseTuple(args, "s#", &filename, &filename_len) ){
+        return NULL;
+    }
+    ss.str("");
+    ss << filename;
+    input_file = ss.str();
+
+    ss.str("");
+    ss << "./ropium_raw_gadgets.0";
+    gadget_file = ss.str();
+
+    try{
+        // Parse RP++ gadgets from file and load them into the gadget_file
+        if( ! rp_gadgets_to_file(gadget_file, input_file)){
+            return PyErr_Format(PyExc_RuntimeError, "Couldn't read input file");
+        }
+        raw = raw_gadgets_from_file(gadget_file);
+        as_ropium_object(self).gadget_db->analyse_raw_gadgets(*raw, as_ropium_object(self).arch);
+        //std::cout << "nb_success: " << nb_success << std::endl;
+        delete raw; raw = nullptr;
+        remove(gadget_file.c_str());
+        remove(input_file.c_str());
+    }catch(runtime_exception& e){
+        return PyErr_Format(PyExc_RuntimeError, "%s", e.what());
+    }
+
+
+
+    Py_RETURN_NONE;
+};
+
 static PyObject* ROPium_compile(PyObject* self, PyObject* args){
     const char* query;
     int query_len;
@@ -96,6 +154,7 @@ static PyObject* ROPium_compile(PyObject* self, PyObject* args){
 
 static PyMethodDef ROPium_methods[] = {
     {"load", (PyCFunction)ROPium_load, METH_VARARGS, "load(<filename>) \nLoad and analyse gadgets from a binary"},
+    {"load_rp", (PyCFunction)ROPium_load_rp, METH_VARARGS, "load_rp(<filename>) \nLoad and analyse gadgets from a rp++ output file"},
     {"compile", (PyCFunction)ROPium_compile, METH_VARARGS, "compile(<query>) \nCompile a semantic query into a ropchain"},
     {NULL, NULL, 0, NULL}
 };
