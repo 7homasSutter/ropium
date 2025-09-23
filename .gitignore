@@ -1,0 +1,15 @@
+# Build artifacts
+*.o
+*.so
+*.pyc
+__pycache__/
+*.gch
+
+# Binary output
+bin/libropium.so
+bin/ropium.so
+bin/tests
+
+# Temporary files
+.ropium_raw_gadgets.*
+test_basic.py
