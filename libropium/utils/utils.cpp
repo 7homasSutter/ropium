@@ -34,7 +34,7 @@ vector<RawGadget>* raw_gadgets_from_file(string filename){
     
     file.open(filename, ios::in | ios::binary );
     while( getline(file, line)){
-        std::cout << "RAW: Read Line: " << line << std::endl;
+        //std::cout << "RAW: Read Line: " << line << std::endl;
         raw = RawGadget();
         got_addr = false;
         addr_str = "";
@@ -178,7 +178,7 @@ bool rp_gadgets_to_file(string output_file_path, string input_file_path){
             // Get address string
             if( splited.size() > 3 ){
                 addr_str = splited[0];
-                std::cout << "Read Line addr_str: " << addr_str << std::endl;
+                //std::cout << "Read Line addr_str: " << addr_str << std::endl;
             }else{
                 continue;
             }
@@ -187,7 +187,7 @@ bool rp_gadgets_to_file(string output_file_path, string input_file_path){
             }
             // Get raw string - last element of the split
             raw_str = splited.back();
-            std::cout << "Read Line raw_str: " << raw_str << std::endl;
+            //std::cout << "Read Line raw_str: " << raw_str << std::endl;
             if (raw_str.find("\\x") != std::string::npos) {
                 size_t pos = 0;
                 while ((pos = raw_str.find("\\x", pos)) != std::string::npos) {
@@ -201,7 +201,7 @@ bool rp_gadgets_to_file(string output_file_path, string input_file_path){
             std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
             std::wstring addr_wstr = std::wstring(addr_str.begin(), addr_str.end());
             std::string addr_utf8 = conv.to_bytes(addr_wstr);
-            std::cout << "Read Line addr_wstr: " << addr_utf8 << std::endl;
+            //std::cout << "Read Line addr_wstr: " << addr_utf8 << std::endl;
             std::wstring raw_wstr = std::wstring(raw_str.begin(), raw_str.end());
             std::string raw_utf8 = conv.to_bytes(raw_wstr);
             out_file << addr_utf8 << "$" << raw_utf8;

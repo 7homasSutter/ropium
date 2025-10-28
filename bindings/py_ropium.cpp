@@ -123,7 +123,7 @@ static PyObject* ROPium_load_rp(PyObject* self, PyObject* args){
         std::cout << "Done analysing raw gadgets " << std::endl;
         //std::cout << "nb_success: " << nb_success << std::endl;
         delete raw; raw = nullptr;
-        //remove(gadget_file.c_str());
+        remove(gadget_file.c_str());
         //remove(input_file.c_str());
     }catch(runtime_exception& e){
         return PyErr_Format(PyExc_RuntimeError, "%s", e.what());
