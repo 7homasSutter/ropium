@@ -17,6 +17,8 @@ docker build . --tag ropium
 docker run --rm -it -v ./ropium/:/ropium/ ropium
 cd /ropium/
 make clean && make && make install
+ropium
+
 
 # Analyse a file with ROPium
 (ropium)> load -a X86 /tmp/FILE
