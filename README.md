@@ -14,7 +14,17 @@ follows:
 docker build . --tag ropium
 
 # Run the image in interactive mode, bind mounting the file to analyze
-docker run --rm -it -v /FULL/HOST/PATH/FILE:/tmp/FILE:ro ropium
+docker run --rm -it -v ./ropium/:/ropium/ ropium
+cd /ropium/
+make clean && make && make install
 
+# Analyse a file with ROPium
 (ropium)> load -a X86 /tmp/FILE
+
+# Loading gadgets from a rp++ file
+## Run rp++ with first to get the gadgets
+rp-win.exe -f FILE -r 10 --print-bytes > out.txt
+
+## Then load the gadgets in ROPium
+(ropium)> load_rp out.txt
 ```
