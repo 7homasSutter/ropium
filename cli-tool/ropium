@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import sys
+import traceback
+
 from ropium import *
 from prompt_toolkit import PromptSession, ANSI
 import os
@@ -185,7 +188,15 @@ def load_rp_gadgets(args):
     elif compiler and arch and (str_to_arch[arch] != compiler.arch):
         raise LoadException(f"Already working on a different architecture than '{arch}'")
 
-    compiler.load_rp(args.file)
+    info(f"Loading rp++ gadgets from file: {args.file}")
+    try:
+        if args.file.startswith("'") and args.file.endswith("'"):
+            args.file = args.file[1:-1]
+        compiler.load_rp(str(args.file))
+    except Exception as e:
+        traceback.print_exc()
+        traceback.print_exception(*sys.exc_info())
+        raise LoadException(f"Failed to load rp++ gadgets: {str(e)}")
     info(f"Loaded: {args.file}")
 
 # Load command

@@ -88,19 +88,20 @@ static PyObject* ROPium_load_rp(PyObject* self, PyObject* args){
                 const char* s = PyUnicode_AsUTF8(str_repr);
                 if (s) {
                     std::cout << "Arg " << i << ": " << s << std::endl;
+                    filename = s;
+                    filename_len = strlen(s);
                 }
                 Py_DECREF(str_repr);
             }
         }
     }
-
-    // Parse Input File
-    if( ! PyArg_ParseTuple(args, "s#", &filename, &filename_len) ){
-        return NULL;
+    std::string fname(filename, filename_len);
+    // Remove leading and trailing single quotes if present
+    if (!fname.empty() && fname.front() == '\'' && fname.back() == '\'') {
+        fname = fname.substr(1, fname.size() - 2);
     }
-    ss.str("");
-    ss << filename;
-    input_file = ss.str();
+    input_file = fname;
+    std::cout << "input_file: " << input_file << std::endl;
 
     ss.str("");
     ss << "./ropium_raw_gadgets.0";
@@ -111,12 +112,19 @@ static PyObject* ROPium_load_rp(PyObject* self, PyObject* args){
         if( ! rp_gadgets_to_file(gadget_file, input_file)){
             return PyErr_Format(PyExc_RuntimeError, "Couldn't read input file");
         }
+        std::cout << "Done converting RP++ Gadgets to raw gadgets. Start loading raw gadgets " << std::endl;
         raw = raw_gadgets_from_file(gadget_file);
+        std::cout << "Done loading raw gadgets " << std::endl;
+        if (!raw) {
+            return PyErr_Format(PyExc_RuntimeError, "Failed to load raw gadgets from file");
+        }
+        std::cout << "Start analysing raw gadgets " << std::endl;
         as_ropium_object(self).gadget_db->analyse_raw_gadgets(*raw, as_ropium_object(self).arch);
+        std::cout << "Done analysing raw gadgets " << std::endl;
         //std::cout << "nb_success: " << nb_success << std::endl;
         delete raw; raw = nullptr;
-        remove(gadget_file.c_str());
-        remove(input_file.c_str());
+        //remove(gadget_file.c_str());
+        //remove(input_file.c_str());
     }catch(runtime_exception& e){
         return PyErr_Format(PyExc_RuntimeError, "%s", e.what());
     }
